@@ -73,6 +73,7 @@ Software_Engineering = [
 "CSS",
 "JSX",
 "Python",
+"R",
 "UNIX",
 "Ruby",
 "XML",
@@ -464,8 +465,9 @@ def match_skill(skill_to_match, filetext):
                 "Skills used: JavaScript,Java,JSP,Servlet,Dojo,jQuery,EMC Documentum,TIBCO\n"
                 "EAI,EMS\n\n"
                 "Skills used: Java, JSP, Servlet, SQL, HTML, CSS, JavaScript")
-    if(len(skill_to_match) == 1):
+    if(len(skill_to_match) <= 5):
         regex =  r"[\s\,]"+skill_to_match+"[\s\,]"
+
     #    matches = re.finditer(regex, filetext, re.MULTILINE | re.IGNORECASE)
 
     #if (len(skill_to_match)>1 and  len(skill_to_match)<= 3) :
