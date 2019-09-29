@@ -52,14 +52,14 @@ Software_Engineering = [
 "LISP",
 "Perl",
 "Fortran",
-"Go",
+"Golang",
 "Assembly",
 "Clojure",
 "Kotlin",
 "Dart",
 "WebAssembly",
-".NET",
-".NET Core",
+"\.NET",
+"\.NET Core",
 "Ansible",
 "Elixir",
 "Erlang",
@@ -80,7 +80,7 @@ Software_Engineering = [
 "Docker",
 "Objective C",
 "JavaScript",
-"REST"
+"REST API"
 ]
 
 Web_Mobile_and_Desktop_Application_Development = [
@@ -351,7 +351,7 @@ Other_Skills = [
 "Embedded Software",
 "Microcontrollers",
 "Multithreaded Programming",
-"ARM",
+"ARM Programming",
 "RTOS",
 "Quality Assurance QA",
 "Oracle BI",
