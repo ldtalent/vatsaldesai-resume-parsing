@@ -1,4 +1,4 @@
-'''
+u'''
 
 Resume analysis task
 
@@ -21,6 +21,8 @@ candidate appropriately.
 The skill list and categories are defined here.
 
 '''
+from __future__ import with_statement
+from __future__ import absolute_import
 import re
 import io
 import json
@@ -29,373 +31,374 @@ from pdfminer.converter import TextConverter
 from pdfminer.pdfinterp import PDFPageInterpreter
 from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfpage import PDFPage
+from io import open
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-r", "--resume", required=True,
-    help="path to resume")
+ap.add_argument(u"-r", u"--resume", required=True,
+    help=u"path to resume")
 args = vars(ap.parse_args())
 
 
 Software_Engineering = [
-"C\+\+",   
-"J2EE",
-"Git",
-"OpenShift",
-"Singularity Containerization",
-"Regex",
-"UML Diagrams",
-"Apache Kafka",
-"Scala",
-"VBA",
-"Rust",
-"LISP",
-"Perl",
-"Fortran",
-"Golang",
-"Assembly",
-"Clojure",
-"Kotlin",
-"Dart",
-"WebAssembly",
-"\.NET",
-"\.NET Core",
-"Ansible",
-"Elixir",
-"Erlang",
-"NoSQL",
-"WebRTC",
-"C#",
-"C",
-"SQL",
-"Java",
-"HTML",
-"CSS",
-"JSX",
-"Python",
-"R",
-"UNIX",
-"Ruby",
-"XML",
-"PHP",
-"Docker",
-"Objective C",
-"JavaScript",
-"REST API"
+u"C\+\+",   
+u"J2EE",
+u"Git",
+u"OpenShift",
+u"Singularity Containerization",
+u"Regex",
+u"UML Diagrams",
+u"Apache Kafka",
+u"Scala",
+u"VBA",
+u"Rust",
+u"LISP",
+u"Perl",
+u"Fortran",
+u"Golang",
+u"Assembly",
+u"Clojure",
+u"Kotlin",
+u"Dart",
+u"WebAssembly",
+u"\.NET",
+u"\.NET Core",
+u"Ansible",
+u"Elixir",
+u"Erlang",
+u"NoSQL",
+u"WebRTC",
+u"C#",
+u"C",
+u"SQL",
+u"Java",
+u"HTML",
+u"CSS",
+u"JSX",
+u"Python",
+u"R",
+u"UNIX",
+u"Ruby",
+u"XML",
+u"PHP",
+u"Docker",
+u"Objective C",
+u"JavaScript",
+u"REST API"
 ]
 
 Web_Mobile_and_Desktop_Application_Development = [
-"Elm",
-"Mocha",
-"Chai",
-"Bulma",
-"Semantic-UI",
-"Swift",
-"Ember.js",
-"VulcanJS",
-"MeteorJS",
-"Google Tag Manager",
-"Google Analytics",
-"WebSockets",
-"Gatsby",
-"Postman",
-"Cucumber",
-"Wix",
-"Bootstrap",
-"GraphQL",
-"Angular",
-"Typescript",
-"MongoDB",
-"ExpressJS",
-"Data Semantic Layers",
-"SEO",
-"Redux",
-"Webpack",
-"Apollo GraphQL",
-"ECMA",
-"CSS Flex",
-"jQuery",
-"UI Design",
-"UX Design",
-"Interaction Design",
-"Material Design",
-"Flow JS",
-"Babel JS",
-"Ionic",
-"Grind Rocks for Node",
-"Postgres",
-"MySQL",
-"Vagrant",
-"VirtualBox",
-"WebGL",
-"DevOps",
-"Site Reliability",
-"ASP.NET",
-"Drupal",
-"Cordova",
-"Xamarin",
-"Flutter",
-"Microsoft SQL Server",
-"SQLite",
-"Redis",
-"MariaDB",
-"OracleDB",
-"DynamoDB",
-"Cassandra",
-"Couchbase",
-"Chef",
-"ReasonML",
-"Django",
-"Nodejs",
-"Laravel",
-"Flask",
-"React",
-"Ruby on rails",
-"React native",
-"Wordpress",
-"Android native app development",
-"iOS native app development",
-"Windows Application Development",
-"Mac Application Development",
-"Chrome Extension Development",
-"Firefox Extension Development",
-"Safari Extension Development",
-"Internet Explorer Extension Development",
-"XCode",
-"Vue.js",
-"Visual Studio",
-"Android Studio"
+u"Elm",
+u"Mocha",
+u"Chai",
+u"Bulma",
+u"Semantic-UI",
+u"Swift",
+u"Ember.js",
+u"VulcanJS",
+u"MeteorJS",
+u"Google Tag Manager",
+u"Google Analytics",
+u"WebSockets",
+u"Gatsby",
+u"Postman",
+u"Cucumber",
+u"Wix",
+u"Bootstrap",
+u"GraphQL",
+u"Angular",
+u"Typescript",
+u"MongoDB",
+u"ExpressJS",
+u"Data Semantic Layers",
+u"SEO",
+u"Redux",
+u"Webpack",
+u"Apollo GraphQL",
+u"ECMA",
+u"CSS Flex",
+u"jQuery",
+u"UI Design",
+u"UX Design",
+u"Interaction Design",
+u"Material Design",
+u"Flow JS",
+u"Babel JS",
+u"Ionic",
+u"Grind Rocks for Node",
+u"Postgres",
+u"MySQL",
+u"Vagrant",
+u"VirtualBox",
+u"WebGL",
+u"DevOps",
+u"Site Reliability",
+u"ASP.NET",
+u"Drupal",
+u"Cordova",
+u"Xamarin",
+u"Flutter",
+u"Microsoft SQL Server",
+u"SQLite",
+u"Redis",
+u"MariaDB",
+u"OracleDB",
+u"DynamoDB",
+u"Cassandra",
+u"Couchbase",
+u"Chef",
+u"ReasonML",
+u"Django",
+u"Nodejs",
+u"Laravel",
+u"Flask",
+u"React",
+u"Ruby on rails",
+u"React native",
+u"Wordpress",
+u"Android native app development",
+u"iOS native app development",
+u"Windows Application Development",
+u"Mac Application Development",
+u"Chrome Extension Development",
+u"Firefox Extension Development",
+u"Safari Extension Development",
+u"Internet Explorer Extension Development",
+u"XCode",
+u"Vue.js",
+u"Visual Studio",
+u"Android Studio"
 ]
 
 Artificial_Intelligence = [
-"keras",
-"KNIME",
-"OCR",
-"PyTorch",
-"Torch",
-"Autonomous Vehicles and Self Driving Cars",
-"Artificial intelligence",
-"Machine learning",
-"Deep learning",
-"Natural language processing",
-"Speech recognition",
-"Probabilistic graphical models",
-"Robotics",
-"Computer vision",
-"Reinforcement learning",
-"Data mining",
-"Quadrocopters",
-"Drones"
+u"keras",
+u"KNIME",
+u"OCR",
+u"PyTorch",
+u"Torch",
+u"Autonomous Vehicles and Self Driving Cars",
+u"Artificial intelligence",
+u"Machine learning",
+u"Deep learning",
+u"Natural language processing",
+u"Speech recognition",
+u"Probabilistic graphical models",
+u"Robotics",
+u"Computer vision",
+u"Reinforcement learning",
+u"Data mining",
+u"Quadrocopters",
+u"Drones"
 ]
 
 Special_Technologies_and_Expertise_Areas = [
-"Cyber Security",
-"Hackintosh",
-"Sound Engineering",
-"GDPR Compliance",
-"Logic Pro X",
-"Final Cut Pro",
-"Pro Tools",
-"Autodesk Maya",
-"Salesforce Development",
-"Photoshop",
-"Adobe Premiere Pro",
-"IBM DB2",
-"Maven",
-"Turtle Logo",
-"Lego Mindstorms",
-"Autodesk Revit",
-"Google Sketchup",
-"Rhino",
-"3Dmax",
-"CorelDraw",
-"Canva",
-"Inkscape",
-"GIMP",
-"InDesign",
-"Proteomics",
-"Microsoft Excel",
-"Design Modo",
-"Salesforce Pardot",
-"EMR Software",
-"Data Analytics",
-"R for Statistics",
-"Data Science",
-"Adobe Illustrator",
-"3D modeling",
-".obj files",
-"Marketplaces",
-"Product Lifecycle Management",
-"Agile",
-"SCRUM",
-"Kanban",
-"Kaizen",
-"Lean",
-"JMP",
-"Minitab",
-"Shopify",
-"Unreal Engine Game Development",
-"Computational Linguistics",
-"Fourier Transforms",
-"Kubernetes",
-"Microservices",
-"Jupyter",
-"Augmented Reality AR",
-"Virtual Reality VR",
-"Apache Spark",
-"Puppet",
-"CryEngine",
-"QTP/ HP for QA Testing",
-"Appium for QA Testing",
-"Seetest for QA Testing",
-"Apache Jmeter",
-"Load runner",
-"SOAP UI",
-"HP Quality Centre",
-"Version One",
-"Bugzilla",
-"TestCaseLab",
-"qTest",
-"TestRail",
-"TestLink",
-"PractiTest",
-"TestLodge",
-"QACoverage",
-"Fogbuz",
-"TFS",
-"Serverless Architecture",
-"Blockchain",
-"iOT",
-"Bioinformatics",
-"Unity Game Design and Development",
-"Chatbots",
-"Data visualization",
-"Web scrapers",
-"Unity Augmented Reality Design and Development",
-"Browser automation",
-"Mapreduce",
-"Unity Virtual Reality Design and Development",
-"Solidity",
-"Genomics",
-"Ethereum"
+u"Cyber Security",
+u"Hackintosh",
+u"Sound Engineering",
+u"GDPR Compliance",
+u"Logic Pro X",
+u"Final Cut Pro",
+u"Pro Tools",
+u"Autodesk Maya",
+u"Salesforce Development",
+u"Photoshop",
+u"Adobe Premiere Pro",
+u"IBM DB2",
+u"Maven",
+u"Turtle Logo",
+u"Lego Mindstorms",
+u"Autodesk Revit",
+u"Google Sketchup",
+u"Rhino",
+u"3Dmax",
+u"CorelDraw",
+u"Canva",
+u"Inkscape",
+u"GIMP",
+u"InDesign",
+u"Proteomics",
+u"Microsoft Excel",
+u"Design Modo",
+u"Salesforce Pardot",
+u"EMR Software",
+u"Data Analytics",
+u"R for Statistics",
+u"Data Science",
+u"Adobe Illustrator",
+u"3D modeling",
+u".obj files",
+u"Marketplaces",
+u"Product Lifecycle Management",
+u"Agile",
+u"SCRUM",
+u"Kanban",
+u"Kaizen",
+u"Lean",
+u"JMP",
+u"Minitab",
+u"Shopify",
+u"Unreal Engine Game Development",
+u"Computational Linguistics",
+u"Fourier Transforms",
+u"Kubernetes",
+u"Microservices",
+u"Jupyter",
+u"Augmented Reality AR",
+u"Virtual Reality VR",
+u"Apache Spark",
+u"Puppet",
+u"CryEngine",
+u"QTP/ HP for QA Testing",
+u"Appium for QA Testing",
+u"Seetest for QA Testing",
+u"Apache Jmeter",
+u"Load runner",
+u"SOAP UI",
+u"HP Quality Centre",
+u"Version One",
+u"Bugzilla",
+u"TestCaseLab",
+u"qTest",
+u"TestRail",
+u"TestLink",
+u"PractiTest",
+u"TestLodge",
+u"QACoverage",
+u"Fogbuz",
+u"TFS",
+u"Serverless Architecture",
+u"Blockchain",
+u"iOT",
+u"Bioinformatics",
+u"Unity Game Design and Development",
+u"Chatbots",
+u"Data visualization",
+u"Web scrapers",
+u"Unity Augmented Reality Design and Development",
+u"Browser automation",
+u"Mapreduce",
+u"Unity Virtual Reality Design and Development",
+u"Solidity",
+u"Genomics",
+u"Ethereum"
 ]
 
 APIs_and_Packages = [
-"Google NLP API",
-"Socket.IO",
-"Sequelize",
-"Mapbox",
-"Github API",
-"Matplotlib",
-"scikit-learn",
-"PyQt5",
-"ADA Compliance",
-"Pandas",
-"Slack API",
-"Tensorflow",
-"Blockchain API",
-"Ripple API",
-"D3",
-"Vega",
-"Vega Lite",
-"Biopython",
-"Python Selenium",
-"Selenium",
-"Google Maps API",
-"Mailchimp API",
-"Sendgrid API",
-"Twitter APIs",
-"Stripe API",
-"Twilio API",
-"Apache Hadoop",
-"Facebook API",
-"Google Computer Vision API",
-"Google API",
-"AWS Cloud Compliance",
-"HIPAA Cloud Compliance",
-"Finance Cloud Compliance",
-"Government Cloud Compliance (US DoD)",
-"Paypal API"
+u"Google NLP API",
+u"Socket.IO",
+u"Sequelize",
+u"Mapbox",
+u"Github API",
+u"Matplotlib",
+u"scikit-learn",
+u"PyQt5",
+u"ADA Compliance",
+u"Pandas",
+u"Slack API",
+u"Tensorflow",
+u"Blockchain API",
+u"Ripple API",
+u"D3",
+u"Vega",
+u"Vega Lite",
+u"Biopython",
+u"Python Selenium",
+u"Selenium",
+u"Google Maps API",
+u"Mailchimp API",
+u"Sendgrid API",
+u"Twitter APIs",
+u"Stripe API",
+u"Twilio API",
+u"Apache Hadoop",
+u"Facebook API",
+u"Google Computer Vision API",
+u"Google API",
+u"AWS Cloud Compliance",
+u"HIPAA Cloud Compliance",
+u"Finance Cloud Compliance",
+u"Government Cloud Compliance (US DoD)",
+u"Paypal API"
 ]
 
 Electrical_and_Mechanical_Engineering = [
-"Autodesk",
-".dxf files",
-"Digital Manufacturing",
-"AutoCAD",
-"MATLAB",
-"Verilog",
-"VHDL",
-"LabVIEW",
-"ANSYS",
-"Intel x86",
-"Hypermesh",
-"SolidWorks",
-"Medical Devices",
-"SPICE (ic design)"
+u"Autodesk",
+u".dxf files",
+u"Digital Manufacturing",
+u"AutoCAD",
+u"MATLAB",
+u"Verilog",
+u"VHDL",
+u"LabVIEW",
+u"ANSYS",
+u"Intel x86",
+u"Hypermesh",
+u"SolidWorks",
+u"Medical Devices",
+u"SPICE (ic design)"
 ]
 
 Other_Skills = [
-"AWS EC2",
-"AWS Redshift",
-"AWS CloudFront",
-"AWS S3",
-"AWS DynamoDB",
-"AWS ECR",
-"AWS Elastic Beanstalk",
-"Amazon ElastiCache",
-"AWS ElasticMapReduce",
-"AWS IoT",
-"AWS Key Management Service",
-"AWS RDS",
-"Electronic Health Records",
-"Embedded Software",
-"Microcontrollers",
-"Multithreaded Programming",
-"ARM Programming",
-"RTOS",
-"Quality Assurance QA",
-"Oracle BI",
-"SAP",
-"Plotly",
-"Eclipse",
-"Cloud Foundry",
-"Kubernetes",
-"Terraform",
-"Product Management",
-"Google Cloud",
-"AWS",
-"Firebase",
-"SWOT Analysis",
-"FMEA Analysis",
-"VoC Strategy Analysis",
-"PEST Analysis",
-"Pareto Analysis",
-"JIRA",
-"Trello",
-"Asana",
-"Microsoft Project",
-"SAP",
-"Tableau",
-"AWS Elasticsearch",
-"Linux",
-"Windows",
-"MacOS",
-"Raspberry Pi",
-"Azure",
-"Arduino",
-"Heroku",
-"IBM Cloud Watson",
-"AWS Lambda",
-"Spring",
-"Hibernate",
-"DROOLS",
-"OSCache",
-"SOAP",
-"Actuate Espreadsheet",
-"Autosys",
-"XSLT",
-"Cocoon"
+u"AWS EC2",
+u"AWS Redshift",
+u"AWS CloudFront",
+u"AWS S3",
+u"AWS DynamoDB",
+u"AWS ECR",
+u"AWS Elastic Beanstalk",
+u"Amazon ElastiCache",
+u"AWS ElasticMapReduce",
+u"AWS IoT",
+u"AWS Key Management Service",
+u"AWS RDS",
+u"Electronic Health Records",
+u"Embedded Software",
+u"Microcontrollers",
+u"Multithreaded Programming",
+u"ARM Programming",
+u"RTOS",
+u"Quality Assurance QA",
+u"Oracle BI",
+u"SAP",
+u"Plotly",
+u"Eclipse",
+u"Cloud Foundry",
+u"Kubernetes",
+u"Terraform",
+u"Product Management",
+u"Google Cloud",
+u"AWS",
+u"Firebase",
+u"SWOT Analysis",
+u"FMEA Analysis",
+u"VoC Strategy Analysis",
+u"PEST Analysis",
+u"Pareto Analysis",
+u"JIRA",
+u"Trello",
+u"Asana",
+u"Microsoft Project",
+u"SAP",
+u"Tableau",
+u"AWS Elasticsearch",
+u"Linux",
+u"Windows",
+u"MacOS",
+u"Raspberry Pi",
+u"Azure",
+u"Arduino",
+u"Heroku",
+u"IBM Cloud Watson",
+u"AWS Lambda",
+u"Spring",
+u"Hibernate",
+u"DROOLS",
+u"OSCache",
+u"SOAP",
+u"Actuate Espreadsheet",
+u"Autosys",
+u"XSLT",
+u"Cocoon"
 ]
 
 
@@ -404,10 +407,10 @@ BEGINNER = 1
 MODERATE = 2
 ADVANCED = 3
 EXPERIENCE = (
-    (LEARNING, 'LEARNING'),
-    (BEGINNER, 'BEGINNER'),
-    (MODERATE, 'MODERATE'),
-    (ADVANCED, 'ADVANCED')
+    (LEARNING, u'LEARNING'),
+    (BEGINNER, u'BEGINNER'),
+    (MODERATE, u'MODERATE'),
+    (ADVANCED, u'ADVANCED')
 )
 
 class FreelancerSkill(object):
@@ -419,10 +422,10 @@ class FreelancerSkill(object):
         self.experience_level = experience_level
         
     def  __str__(self):
-        return 'Freelancer ' + self.freelancer_email + \
-            ' has skill ' + json.dumps(self.skill) + \
-            ' with ' + str(self.years_of_experience) + ' years of experience;' + \
-            ' at ' + str(EXPERIENCE[self.experience_level]) + ' level'
+        return u'Freelancer ' + self.freelancer_email + \
+            u' has skill ' + json.dumps(self.skill) + \
+            u' with ' + unicode(self.years_of_experience) + u' years of experience;' + \
+            u' at ' + unicode(EXPERIENCE[self.experience_level]) + u' level'
 
 
 
@@ -432,7 +435,7 @@ def extract_text_from_pdf(pdf_path):
     converter = TextConverter(resource_manager, fake_file_handle)
     page_interpreter = PDFPageInterpreter(resource_manager, converter)
  
-    with open(pdf_path, 'rb') as fh:
+    with open(pdf_path, u'rb') as fh:
         for page in PDFPage.get_pages(fh, 
                                       caching=True,
                                       check_extractable=True):
@@ -450,23 +453,23 @@ def extract_text_from_pdf(pdf_path):
 def match_skill(skill_to_match, filetext):
     
     #skill_to_check =
-    skill_to_check = r"("+skill_to_match+")"
-    print(skill_to_check)
+    skill_to_check = ur"("+skill_to_match+u")"
+    print skill_to_check
     regex = skill_to_check
     # regex = r"(Core Java)"
     #skills = 
 
-    test_str = ("Skill Tags: Keras,TensorFlow, Numpy,Javascript, Python, Nodejs, socket.io, websockets,\n"
-                "Core Java,JSP/Servlet, Google Dialogflow, Android(native-android studio),\n"
-                "Kotlin,Swift, Google MAP API, Facebook API, JavaFX, REST API, HTML,Unix,CSS, SQL,XML, TIBCO EMC Documentum,jQuery\n\n"
-                "Skills used: Python, NodeJS, JavaScript, socket.io, websockets, Java, Android(native ),\n"
-                "Servlet, HTML, NodeJS, Socket.io, jQuery, HTML, CSS, Google MAP API, Facebook API\n\n"
-                "Skills used: Core Java, EJB, J2EE\n\n"
-                "Skills used: JavaScript,Java,JSP,Servlet,Dojo,jQuery,EMC Documentum,TIBCO\n"
-                "EAI,EMS\n\n"
-                "Skills used: Java, JSP, Servlet, SQL, HTML, CSS, JavaScript")
+    test_str = (u"Skill Tags: Keras,TensorFlow, Numpy,Javascript, Python, Nodejs, socket.io, websockets,\n"
+                u"Core Java,JSP/Servlet, Google Dialogflow, Android(native-android studio),\n"
+                u"Kotlin,Swift, Google MAP API, Facebook API, JavaFX, REST API, HTML,Unix,CSS, SQL,XML, TIBCO EMC Documentum,jQuery\n\n"
+                u"Skills used: Python, NodeJS, JavaScript, socket.io, websockets, Java, Android(native ),\n"
+                u"Servlet, HTML, NodeJS, Socket.io, jQuery, HTML, CSS, Google MAP API, Facebook API\n\n"
+                u"Skills used: Core Java, EJB, J2EE\n\n"
+                u"Skills used: JavaScript,Java,JSP,Servlet,Dojo,jQuery,EMC Documentum,TIBCO\n"
+                u"EAI,EMS\n\n"
+                u"Skills used: Java, JSP, Servlet, SQL, HTML, CSS, JavaScript")
     if(len(skill_to_match) <= 5):
-        regex =  r"[\s\,]"+skill_to_match+"[\s\,]"
+        regex =  ur"[\s\,]"+skill_to_match+u"[\s\,]"
 
     #    matches = re.finditer(regex, filetext, re.MULTILINE | re.IGNORECASE)
 
@@ -483,7 +486,7 @@ def match_skill(skill_to_match, filetext):
         #print("Match {matchNum} was found at {start}-{end}: {match}".format(matchNum=matchNum, start=match.start(),
         #                                                                    end=match.end(), match=match.group()))
 
-        for groupNum in range(0, len(match.groups())):
+        for groupNum in xrange(0, len(match.groups())):
             groupNum = groupNum + 1
 
             #print("Group {groupNum} found at {start}-{end}: {group}".format(groupNum=groupNum,
@@ -498,7 +501,7 @@ def match_skill(skill_to_match, filetext):
 def match_skill_category(filename):
     skills = dict()
     filetext = extract_text_from_pdf(filename)
-    print(filetext)
+    print filetext
     Software_Engineering_Lst = list()
     Web_Mobile_and_Desktop_Application_Development_Lst = list()
     Artificial_Intelligence_Lst= list()
@@ -510,34 +513,34 @@ def match_skill_category(filename):
         if(match_skill(i, filetext)):
             Software_Engineering_Lst.append(i)
 
-    skills['Software_Engineering'] = Software_Engineering_Lst;
+    skills[u'Software_Engineering'] = Software_Engineering_Lst;
     
 
     for k in Web_Mobile_and_Desktop_Application_Development:
         if(match_skill(k, filetext)):
             Web_Mobile_and_Desktop_Application_Development_Lst.append(k)
-    skills['Web_Mobile_and_Desktop_Application_Development'] = Web_Mobile_and_Desktop_Application_Development_Lst;
+    skills[u'Web_Mobile_and_Desktop_Application_Development'] = Web_Mobile_and_Desktop_Application_Development_Lst;
     
 
     for l in Artificial_Intelligence:
         if(match_skill(l, filetext)):
             Artificial_Intelligence_Lst.append(l)
 
-    skills['Artificial_Intelligence'] = Artificial_Intelligence_Lst;
+    skills[u'Artificial_Intelligence'] = Artificial_Intelligence_Lst;
     
 
     for m in Special_Technologies_and_Expertise_Areas:
         if(match_skill(m, filetext)):
             Special_Technologies_and_Expertise_Areas_Lst.append(m)
 
-    skills['Special_Technologies_and_Expertise_Areas'] = Special_Technologies_and_Expertise_Areas_Lst;
+    skills[u'Special_Technologies_and_Expertise_Areas'] = Special_Technologies_and_Expertise_Areas_Lst;
     
 
     for p in APIs_and_Packages:
         if(match_skill(p, filetext)):
             APIs_and_Packages_Lst.append(p)
 
-    skills['APIs_and_Packages'] = APIs_and_Packages_Lst;
+    skills[u'APIs_and_Packages'] = APIs_and_Packages_Lst;
 
     
 
@@ -545,16 +548,16 @@ def match_skill_category(filename):
         if(match_skill(q, filetext)):
             Other_Skills_Lst.append(q)
 
-    skills['Other_Skills'] = Other_Skills_Lst;
+    skills[u'Other_Skills'] = Other_Skills_Lst;
     
 
     #print("skills ", skills)
 
     return skills
 
-if __name__ == '__main__':
-    skills_retrieved =  match_skill_category(args["resume"])
+if __name__ == u'__main__':
+    skills_retrieved =  match_skill_category(args[u"resume"])
 
-    fs = FreelancerSkill("vatsaldin@gmail.com", skills_retrieved, 30., ADVANCED)
-    print(fs)
+    fs = FreelancerSkill(u"vatsaldin@gmail.com", skills_retrieved, 30., ADVANCED)
+    print fs
     #'VatsalD Resume.pdf'
