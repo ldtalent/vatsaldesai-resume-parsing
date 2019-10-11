@@ -1,44 +1,14 @@
-u'''
-
-Resume analysis task
-
-The task involves reading a PDF file and producing FreelancerSkill object
-with years_of_experience and experience_level.
-
-The PDF file needs to be parsed carefully so that candidates skills are identified.
-Note that some of them are single character long, so searches need to
-be carefully managed.  Also, case sensitivity may not always be appropriate.
-Some are even written in mixed case.  Further, there may be multiple words
-and acronyms involved.  Some type of "fuzzy" match is needed.
-
-One needs to estimate the years of experience - presumably there are dates
-in the resume to figure that out.  Otherwise, some guess work based on the
-dates in the resume is useful.
-
-One also needs to estimate the level of experience and categorize in the
-candidate appropriately.  
-
-The skill list and categories are defined here.
-
-'''
 from __future__ import with_statement
 from __future__ import absolute_import
+import PyPDF2 
+import textract
+import pathlib
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
 import re
 import io
 import json
 import argparse
-from pdfminer.converter import TextConverter
-from pdfminer.pdfinterp import PDFPageInterpreter
-from pdfminer.pdfinterp import PDFResourceManager
-from pdfminer.pdfpage import PDFPage
-from io import open
-
-# construct the argument parser and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument(u"-r", u"--resume", required=True,
-    help=u"path to resume")
-args = vars(ap.parse_args())
-
 
 Software_Engineering = [
 u"C\+\+",   
@@ -428,28 +398,6 @@ class FreelancerSkill(object):
             u' at ' + unicode(EXPERIENCE[self.experience_level]) + u' level'
 
 
-
-def extract_text_from_pdf(pdf_path):
-    resource_manager = PDFResourceManager()
-    fake_file_handle = io.StringIO()
-    converter = TextConverter(resource_manager, fake_file_handle)
-    page_interpreter = PDFPageInterpreter(resource_manager, converter)
- 
-    with open(pdf_path, u'rb') as fh:
-        for page in PDFPage.get_pages(fh, 
-                                      caching=True,
-                                      check_extractable=True):
-            page_interpreter.process_page(page)
- 
-        text = fake_file_handle.getvalue()
- 
-    # close open handles
-    converter.close()
-    fake_file_handle.close()
- 
-    if text:
-        return text
-
 def match_skill(skill_to_match, filetext):
     
     #skill_to_check =
@@ -498,10 +446,10 @@ def match_skill(skill_to_match, filetext):
 
 
 # Note: for Python 2.7 compatibility, use ur"" to prefix the regex and u"" to prefix the test string and substitution.
-def match_skill_category(filename):
+def match_skill_category(filetext):
     skills = dict()
-    filetext = extract_text_from_pdf(filename)
-    print filetext
+   
+    #print filetext
     Software_Engineering_Lst = list()
     Web_Mobile_and_Desktop_Application_Development_Lst = list()
     Artificial_Intelligence_Lst= list()
@@ -555,9 +503,32 @@ def match_skill_category(filename):
 
     return skills
 
-if __name__ == u'__main__':
-    skills_retrieved =  match_skill_category(args[u"resume"])
+
+if __name__ == '__main__':
+    src = pathlib.Path('VatsalD Resume.pdf').resolve()
+    with open(str(src), 'rb') as f:
+        pdfReader = PyPDF2.PdfFileReader(f)
+
+        #discerning the number of pages will allow us to parse through all #the pages
+        num_pages = pdfReader.numPages
+        count = 0
+        text = ""
+        #The while loop will read each page
+        while count < num_pages:
+            pageObj = pdfReader.getPage(count)
+            count +=1
+            text += pageObj.extractText()
+            #This if statement exists to check if the above library returned #words. It's done because PyPDF2 cannot read scanned files.
+            if text != "":
+                text = text
+                #If the above returns as False, we run the OCR library textract to #convert scanned/image based PDF files into text
+            else:
+                text = textract.process("VatsalD Resume.pdf", method='tesseract', language='eng')
+
+            print text
+    skills_retrieved =  match_skill_category(text)
 
     fs = FreelancerSkill(u"vatsaldin@gmail.com", skills_retrieved, 30., ADVANCED)
-    print fs
-    #'VatsalD Resume.pdf'
+    print fs        
+
+
