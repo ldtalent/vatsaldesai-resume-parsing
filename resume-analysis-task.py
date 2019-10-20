@@ -9,6 +9,8 @@ import re
 import io
 import json
 import argparse
+import os
+import sys
 
 Software_Engineering = [
 u"C\+\+",   
@@ -402,7 +404,7 @@ def match_skill(skill_to_match, filetext):
     
     #skill_to_check =
     skill_to_check = ur"("+skill_to_match+u")"
-    print skill_to_check
+    #print skill_to_check
     regex = skill_to_check
     # regex = r"(Core Java)"
     #skills = 
@@ -503,32 +505,53 @@ def match_skill_category(filetext):
 
     return skills
 
+def extractTextFromPDF(filename):
 
-if __name__ == '__main__':
-    src = pathlib.Path('VatsalD Resume.pdf').resolve()
-    with open(str(src), 'rb') as f:
-        pdfReader = PyPDF2.PdfFileReader(f)
+    src = pathlib.Path(filename).resolve()
+
+    try:
+
+        with open(str(src), 'rb') as f:
+            pdfReader = PyPDF2.PdfFileReader(f)
 
         #discerning the number of pages will allow us to parse through all #the pages
-        num_pages = pdfReader.numPages
-        count = 0
-        text = ""
+
+            num_pages = pdfReader.numPages
+            count = 0
+            text = ""
         #The while loop will read each page
-        while count < num_pages:
-            pageObj = pdfReader.getPage(count)
-            count +=1
-            text += pageObj.extractText()
+            while count < num_pages:
+                pageObj = pdfReader.getPage(count)
+                print count
+                count +=1
+            
+                text += pageObj.extractText()
+    
             #This if statement exists to check if the above library returned #words. It's done because PyPDF2 cannot read scanned files.
-            if text != "":
-                text = text
+                if text != "":
+                    text = text
                 #If the above returns as False, we run the OCR library textract to #convert scanned/image based PDF files into text
-            else:
-                text = textract.process("VatsalD Resume.pdf", method='tesseract', language='eng')
+                else:
+                    print "Using textract"
+                    text = textract.process("adenekan wonderful_2.pdf", method='tesseract', language='eng', encoding="utf-8" )
+    except UnicodeDecodeError:
+        print "UnicodeDecodeError : Using os.system pdf2text"
+        os.system("pdf2txt.py  '"+(filename)+"'> tmp")
+        text = open('tmp', 'r').read()
+        os.remove('tmp')
+    else:
+        print "Things went smoothly!"                
 
-            print text
+    
+    return text
+
+if __name__ == '__main__':
+    text = extractTextFromPDF(sys.argv[1])
+    print text
     skills_retrieved =  match_skill_category(text)
-
-    fs = FreelancerSkill(u"vatsaldin@gmail.com", skills_retrieved, 30., ADVANCED)
+    
+   
+    fs = FreelancerSkill("abc", skills_retrieved, 30., ADVANCED)
     print fs        
 
 
