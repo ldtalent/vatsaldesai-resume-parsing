@@ -534,25 +534,23 @@ def convert_pdf_to_txt(path):
 def extractDeveloperName(filename):
     # src = pathlib.Path(filename).resolve()
 
-    print(filename)
-    print("current working direcotry", "=>", os.getcwd())
 
-    # paths, fname = os.path.split(filename)
-
-    print("ntpath basename", "=>", ntpath.basename(filename))
-    print("ospath asename", "=>", os.path.basename(filename))
     fname_w_extn = ntpath.basename(filename)
 
     fname, fextension = os.path.splitext(fname_w_extn)
 
-    print(fextension)
-    print(fname)
+    #print(fextension)
+    #print(fname)
     return fname
 
 
-def extractTextFromPDF(filename):
+def extractTextFromPDF(filename, call_textract = 0):
     egineer_name = extractDeveloperName(filename)
+    text = ""
 
+    if call_textract > 0 :
+        text =  textract.process(filename, method='tesseract', language='eng', encoding="utf-8")
+        return egineer_name, text
     try:
 
         with open(str(filename), 'rb') as f:
@@ -563,7 +561,7 @@ def extractTextFromPDF(filename):
 
             num_pages = pdfReader.numPages
             page_count = 0
-            text = ""
+
             # The while loop will read each page
             while page_count < num_pages:
                 pageObj = pdfReader.getPage(page_count)
@@ -574,23 +572,23 @@ def extractTextFromPDF(filename):
                 except TypeError as terror:
                     print("While processing file->", filename, "Page Number->", page_count, terror)
                     text = codecs.decode(text, encoding='utf-8', errors='strict') + pageObj.extractText()
-                    print(text)
+                    print(text.strip())
                 # This if statement exists to check if the above library returned #words. It's done because PyPDF2 cannot read scanned files.
                 if text != "":
                     text = text
                     print("PDF Processed using PYPDF2 Sucessfully")
-                    print(text)
+                    print(text.strip())
                 # If the above returns as False, we run the OCR library textract to #convert scanned/image based PDF files into text
                 else:
                     print("Using textract since PyPDF2 raised error/exception")
                     text = text + textract.process(filename, method='tesseract', language='eng', encoding="utf-8")
-                    print(text)
+                    print(text.strip())
     except IOError:
-        print('An error occurred trying to read the file.', filename)
+        print('An error occurred trying to read the file =====>', filename)
     except ValueError:
-        print('Non-numeric data found in the file.', filename)
+        print('Non-numeric data found in the file. =====>', filename)
     except UnicodeDecodeError:
-        print("UnicodeDecodeError : Using os.system pdf2text", filename)
+        print("UnicodeDecodeError : Using os.system pdf2text =====>", filename)
         os.system("pdf2txt.py  '" + (filename) + "'> tmp")
         text = open('tmp', 'r').read()
         print(text)
@@ -611,7 +609,15 @@ if __name__ == '__main__':
     new_skill_list_filename = 'engineerlist_' + now.strftime(fmt) + '.csv'
     # print directory
     # print os.listdir('.')
-    print(os.listdir(directory))
+    #print(os.listdir(directory))
+
+    #print(filename)
+    print("current working direcotry", "=>", os.getcwd())
+
+    # paths, fname = os.path.split(filename)
+
+    #print("ntpath basename", "=>", ntpath.basename(filename))
+    #print("ospath asename", "=>", os.path.basename(filename))
 
     count = 0
 
@@ -637,21 +643,26 @@ if __name__ == '__main__':
                     skills_retrieved = match_skill_category(text)
 
                     if len(skills_retrieved) == 0:
-                        print("No Skills Found.Trying Different PDF Parser")
+                        print("No Skills Found.Trying PYPDF")
                         engineer, text = extractTextFromPDF(filename)
                         skills_retrieved = match_skill_category(text)
-                        print(engineer)
 
+                        if len(skills_retrieved) == 0:
+                            print("No Skills Found.Trying Textract Explicitly")
+                            engineer, text = extractTextFromPDF(filename, 1)
+                            skills_retrieved = match_skill_category(text)
+
+                    print(engineer)
                     # text = codecs.decode(text, encoding='utf-8', errors='strict')
                     # print text
 
                     writer.writerow([engineer, skills_retrieved])
                 except TypeError as e:
-                    print(e)
+                    print(e, "While processing file:- ", filename)
                     continue
 
                 except Exception as oth:
-                    print(oth)
+                    print(oth, "While processing file:- ", filename)
                     continue
                 fs = FreelancerSkill(engineer, skills_retrieved, 30., ADVANCED)
                 print(fs)
