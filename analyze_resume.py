@@ -44,7 +44,7 @@ Software_Engineering = [
     "Erlang",
     "NoSQL",
     "WebRTC",
-    "C#",
+    "C\#",
     "C",
     "SQL",
     "Java",
@@ -465,7 +465,7 @@ def match_skill_category(filetext):
 
     for i in Software_Engineering:
         if (match_skill(i, filetext)):
-            combined_skill_list.append(i)
+            combined_skill_list.append(i.replace('\\', ''))
             Software_Engineering_Lst.append(i)
             skills['Software_Engineering'] = Software_Engineering_Lst;
 
@@ -473,29 +473,28 @@ def match_skill_category(filetext):
         if (match_skill(k, filetext)):
             Web_Mobile_and_Desktop_Application_Development_Lst.append(k)
             combined_skill_list.append(k)
-            skills[
-                'Web_Mobile_and_Desktop_Application_Development'] = Web_Mobile_and_Desktop_Application_Development_Lst;
+            skills['Web_Mobile_and_Desktop_Application_Development'] = Web_Mobile_and_Desktop_Application_Development_Lst;
 
     for l in Artificial_Intelligence:
-        if (match_skill(l, filetext)):
+        if match_skill(l, filetext):
             Artificial_Intelligence_Lst.append(l)
             combined_skill_list.append(l)
             skills['Artificial_Intelligence'] = Artificial_Intelligence_Lst;
 
     for m in Special_Technologies_and_Expertise_Areas:
-        if (match_skill(m, filetext)):
+        if match_skill(m, filetext):
             Special_Technologies_and_Expertise_Areas_Lst.append(m)
             combined_skill_list.append(m)
             skills['Special_Technologies_and_Expertise_Areas'] = Special_Technologies_and_Expertise_Areas_Lst;
 
     for p in APIs_and_Packages:
-        if (match_skill(p, filetext)):
+        if match_skill(p, filetext):
             APIs_and_Packages_Lst.append(p)
             combined_skill_list.append(p)
             skills['APIs_and_Packages'] = APIs_and_Packages_Lst;
 
     for q in Other_Skills:
-        if (match_skill(q, filetext)):
+        if match_skill(q, filetext):
             Other_Skills_Lst.append(q)
             combined_skill_list.append(q)
             skills['Other_Skills'] = Other_Skills_Lst;
@@ -534,22 +533,21 @@ def convert_pdf_to_txt(path):
 def extractDeveloperName(filename):
     # src = pathlib.Path(filename).resolve()
 
-
     fname_w_extn = ntpath.basename(filename)
 
     fname, fextension = os.path.splitext(fname_w_extn)
 
-    #print(fextension)
-    #print(fname)
+    # print(fextension)
+    # print(fname)
     return fname
 
 
-def extractTextFromPDF(filename, call_textract = 0):
+def extractTextFromPDF(filename, call_textract=0):
     egineer_name = extractDeveloperName(filename)
     text = ""
 
-    if call_textract > 0 :
-        text =  textract.process(filename, method='tesseract', language='eng', encoding="utf-8")
+    if call_textract > 0:
+        text = textract.process(filename, method='tesseract', language='eng', encoding="utf-8")
         return egineer_name, text
     try:
 
@@ -609,18 +607,18 @@ if __name__ == '__main__':
     new_skill_list_filename = 'engineerlist_' + now.strftime(fmt) + '.csv'
     # print directory
     # print os.listdir('.')
-    #print(os.listdir(directory))
+    # print(os.listdir(directory))
 
-    #print(filename)
+    # print(filename)
     print("current working direcotry", "=>", os.getcwd())
 
     # paths, fname = os.path.split(filename)
 
-    #print("ntpath basename", "=>", ntpath.basename(filename))
-    #print("ospath asename", "=>", os.path.basename(filename))
+    # print("ntpath basename", "=>", ntpath.basename(filename))
+    # print("ospath asename", "=>", os.path.basename(filename))
 
     count = 0
-
+    other_filetype_counter = 0
     with open(new_skill_list_filename, 'w') as csv_data_file:
         writer = csv.writer(csv_data_file)
 
@@ -630,7 +628,7 @@ if __name__ == '__main__':
             if count == 0:
                 os.chdir(directory)
 
-            if filename.endswith(".pdf"):
+            if filename.lower().endswith(".pdf"):
 
                 count = count + 1
 
@@ -659,13 +657,18 @@ if __name__ == '__main__':
                     writer.writerow([engineer, skills_retrieved])
                 except TypeError as e:
                     print(e, "While processing file:- ", filename)
+                    writer.writerow([engineer, skills_retrieved])
                     continue
 
                 except Exception as oth:
                     print(oth, "While processing file:- ", filename)
+                    writer.writerow([engineer, skills_retrieved])
                     continue
                 fs = FreelancerSkill(engineer, skills_retrieved, 30., ADVANCED)
                 print(fs)
             else:
+                print("File name with other extension", filename)
+                other_filetype_counter = other_filetype_counter + 1
                 continue
-    print("Files processed:-", count)
+    print("Resumes processed:-", count)
+    print("Other Format Files:-", other_filetype_counter)
