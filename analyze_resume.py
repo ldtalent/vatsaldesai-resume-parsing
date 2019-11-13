@@ -9,12 +9,35 @@ import sys
 import PyPDF2
 import textract
 from datetime import datetime
+import tempfile
 
+from PyPDF2.utils import PdfReadWarning
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
 from io import StringIO
+
+# PDF TO IMAGE CONVERSION
+# IMPORT LIBRARIES
+import pdf2image
+from PIL import Image
+import time
+
+# DECLARE CONSTANTS
+#PDF_PATH = "demo.pdf"
+DPI = 300
+#OUTPUT_FOLDER = None
+FIRST_PAGE = None
+LAST_PAGE = None
+FORMAT = 'jpg'
+THREAD_COUNT = 1
+USERPWD = None
+USE_CROPBOX = False
+STRICT = False
+fmt = "%Y_%m_%d_%I_%M_%S_%p"
+now = datetime.now()
+new_skill_list_filename = 'engineerlist_' + now.strftime(fmt) + '.csv'
 
 Software_Engineering = [
     "C\+\+",
@@ -473,7 +496,8 @@ def match_skill_category(filetext):
         if (match_skill(k, filetext)):
             Web_Mobile_and_Desktop_Application_Development_Lst.append(k)
             combined_skill_list.append(k)
-            skills['Web_Mobile_and_Desktop_Application_Development'] = Web_Mobile_and_Desktop_Application_Development_Lst;
+            skills[
+                'Web_Mobile_and_Desktop_Application_Development'] = Web_Mobile_and_Desktop_Application_Development_Lst;
 
     for l in Artificial_Intelligence:
         if match_skill(l, filetext):
@@ -541,15 +565,14 @@ def extractDeveloperName(filename):
     # print(fname)
     return fname
 
-
 def extractTextFromPDF(filename, call_textract=0):
     egineer_name = extractDeveloperName(filename)
     text = ""
 
-    if call_textract > 0:
-        text = textract.process(filename, method='tesseract', language='eng', encoding="utf-8")
-        return egineer_name, text
     try:
+        if call_textract > 0:
+            text = textract.process(filename, method='tesseract', language='eng', encoding="utf-8")
+            return egineer_name, text
 
         with open(str(filename), 'rb') as f:
 
@@ -581,12 +604,15 @@ def extractTextFromPDF(filename, call_textract=0):
                     print("Using textract since PyPDF2 raised error/exception")
                     text = text + textract.process(filename, method='tesseract', language='eng', encoding="utf-8")
                     print(text.strip())
+    except PdfReadWarning:
+        print(PdfReadWarning, filename)
+        print("PDF READ WARNING CAUGHT..")
     except IOError:
-        print('An error occurred trying to read the file =====>', filename)
+        print(IOError, 'An error occurred trying to read the file =====>', filename)
     except ValueError:
-        print('Non-numeric data found in the file. =====>', filename)
+        print(ValueError, 'Non-numeric data found in the file. =====>', filename)
     except UnicodeDecodeError:
-        print("UnicodeDecodeError : Using os.system pdf2text =====>", filename)
+        print(UnicodeDecodeError, "UnicodeDecodeError : Using os.system pdf2text =====>", filename)
         os.system("pdf2txt.py  '" + (filename) + "'> tmp")
         text = open('tmp', 'r').read()
         print(text)
@@ -599,19 +625,14 @@ def extractTextFromPDF(filename, call_textract=0):
 
 # def writeCSV(engineer, skill_list_category_values):
 
-if __name__ == '__main__':
-
-    directory = sys.argv[1]
-    fmt = "%Y_%m_%d_%I_%M_%S_%p"
-    now = datetime.now()
-    new_skill_list_filename = 'engineerlist_' + now.strftime(fmt) + '.csv'
+def main(directory):
     # print directory
     # print os.listdir('.')
     # print(os.listdir(directory))
 
     # print(filename)
-    print("current working direcotry", "=>", os.getcwd())
-
+    print("Current working direcotry", "=>", os.getcwd())
+    conversion_candidates = dict()
     # paths, fname = os.path.split(filename)
 
     # print("ntpath basename", "=>", ntpath.basename(filename))
@@ -635,40 +656,99 @@ if __name__ == '__main__':
                 print("processing file", "=>", filename)
 
                 filename = "" + filename + ""
+                skills_retrieved = []
+
                 try:
                     engineer, text = convert_pdf_to_txt(filename)
 
                     skills_retrieved = match_skill_category(text)
 
                     if len(skills_retrieved) == 0:
-                        print("No Skills Found.Trying PYPDF")
+                        print("No Skills Found.Trying PYPDF for", filename)
                         engineer, text = extractTextFromPDF(filename)
                         skills_retrieved = match_skill_category(text)
 
-                        if len(skills_retrieved) == 0:
-                            print("No Skills Found.Trying Textract Explicitly")
-                            engineer, text = extractTextFromPDF(filename, 1)
-                            skills_retrieved = match_skill_category(text)
+                    if len(skills_retrieved) == 0:
+                        print("No Skills Found.Trying Textract Explicitly for ", filename)
+                        engineer, text = extractTextFromPDF(filename, 1)
+                        skills_retrieved = match_skill_category(text)
 
                     print(engineer)
                     # text = codecs.decode(text, encoding='utf-8', errors='strict')
                     # print text
 
-                    writer.writerow([engineer, skills_retrieved])
+
                 except TypeError as e:
                     print(e, "While processing file:- ", filename)
-                    writer.writerow([engineer, skills_retrieved])
-                    continue
-
                 except Exception as oth:
                     print(oth, "While processing file:- ", filename)
-                    writer.writerow([engineer, skills_retrieved])
-                    continue
-                fs = FreelancerSkill(engineer, skills_retrieved, 30., ADVANCED)
-                print(fs)
+
+
             else:
                 print("File name with other extension", filename)
                 other_filetype_counter = other_filetype_counter + 1
                 continue
+            if len(skills_retrieved) == 0:
+                conversion_candidates[extractDeveloperName(filename)] = filename
+                #conversion_candidates.append(filename)
+
+            writer.writerow([engineer, skills_retrieved])
+            fs = FreelancerSkill(engineer, skills_retrieved, 30., ADVANCED)
+            print(fs)
+
+    if len(conversion_candidates) > 0:
+        print("List of files to be converted", conversion_candidates)
+        tmp_path = os.path.join(os.getcwd(), "converted_resumes")
+        for devname, fname in conversion_candidates.items():
+            pil_images = pdf_2_pil_images(fname, tmp_path)
+            concat_and_save_images(pil_images, devname)
+
+
     print("Resumes processed:-", count)
     print("Other Format Files:-", other_filetype_counter)
+
+
+
+def pdf_2_pil_images(pdf_file_path, op_folder):
+    # This method reads a pdf and converts it into a sequence of images
+    # PDF_PATH sets the path to the PDF file
+    # dpi parameter assists in adjusting the resolution of the image
+    # output_folder parameter sets the path to the folder to which the PIL images can be stored (optional)
+    # first_page parameter allows you to set a first page to be processed by pdftoppm
+    # last_page parameter allows you to set a last page to be processed by pdftoppm
+    # fmt parameter allows to set the format of pdftoppm conversion (PpmImageFile, TIFF)
+    # thread_count parameter allows you to set how many thread will be used for conversion.
+    # userpw parameter allows you to set a password to unlock the converted PDF
+    # use_cropbox parameter allows you to use the crop box instead of the media box when converting
+    # strict parameter allows you to catch pdftoppm syntax error with a custom type PDFSyntaxError
+
+    start_time = time.time()
+    pil_images = pdf2image.convert_from_path(pdf_file_path, dpi=DPI, output_folder=op_folder, first_page=FIRST_PAGE,
+                                             last_page=LAST_PAGE, fmt=FORMAT, thread_count=THREAD_COUNT, userpw=USERPWD,
+                                             use_cropbox=USE_CROPBOX, strict=STRICT)
+    print("Time taken : " + str(time.time() - start_time))
+    return pil_images
+
+
+
+def concat_and_save_images(pil_images, devname):
+    # This method helps in converting the images in PIL Image file format to the required image format
+    index = 1
+    X_coordinate = 0
+    Y_coordinate = 0
+
+    for img in pil_images:
+        if index == 1:
+            dst = Image.new('RGB', (img.width, img.height * len(pil_images)))
+            dst.paste(img, (X_coordinate, Y_coordinate))
+
+        else:
+            dst.paste(img, (X_coordinate, Y_coordinate))
+
+        Y_coordinate += img.height
+        index += 1
+
+    dst.save(devname + "_page_" + str(index) + ".jpg")
+
+if __name__ == '__main__':
+    main(sys.argv[1])
