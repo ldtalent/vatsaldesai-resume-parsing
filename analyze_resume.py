@@ -5,11 +5,11 @@ import ntpath
 import os
 import re
 import sys
-# from xpdf_python import to_text
 import PyPDF2
+import objectpath
 import textract
 from datetime import datetime
-import tempfile
+import imagetotext as im2text
 
 from PyPDF2.utils import PdfReadWarning
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
@@ -25,9 +25,9 @@ from PIL import Image
 import time
 
 # DECLARE CONSTANTS
-#PDF_PATH = "demo.pdf"
+TARGET_DIRECTORY = '.'
 DPI = 300
-#OUTPUT_FOLDER = None
+# OUTPUT_FOLDER = None
 FIRST_PAGE = None
 LAST_PAGE = None
 FORMAT = 'jpg'
@@ -427,7 +427,7 @@ class FreelancerSkill(object):
                ' at ' + str(EXPERIENCE[self.experience_level]) + ' level'
 
 
-def match_skill(skill_to_match, filetext):
+def match_individual_skill(skill_to_match, filetext):
     # skill_to_check =
     skill_to_check = r"(" + skill_to_match + ")"
     # print skill_to_check
@@ -487,38 +487,38 @@ def match_skill_category(filetext):
     combined_skill_list = list()
 
     for i in Software_Engineering:
-        if (match_skill(i, filetext)):
+        if (match_individual_skill(i, filetext)):
             combined_skill_list.append(i.replace('\\', ''))
             Software_Engineering_Lst.append(i)
             skills['Software_Engineering'] = Software_Engineering_Lst;
 
     for k in Web_Mobile_and_Desktop_Application_Development:
-        if (match_skill(k, filetext)):
+        if (match_individual_skill(k, filetext)):
             Web_Mobile_and_Desktop_Application_Development_Lst.append(k)
             combined_skill_list.append(k)
             skills[
                 'Web_Mobile_and_Desktop_Application_Development'] = Web_Mobile_and_Desktop_Application_Development_Lst;
 
     for l in Artificial_Intelligence:
-        if match_skill(l, filetext):
+        if match_individual_skill(l, filetext):
             Artificial_Intelligence_Lst.append(l)
             combined_skill_list.append(l)
             skills['Artificial_Intelligence'] = Artificial_Intelligence_Lst;
 
     for m in Special_Technologies_and_Expertise_Areas:
-        if match_skill(m, filetext):
+        if match_individual_skill(m, filetext):
             Special_Technologies_and_Expertise_Areas_Lst.append(m)
             combined_skill_list.append(m)
             skills['Special_Technologies_and_Expertise_Areas'] = Special_Technologies_and_Expertise_Areas_Lst;
 
     for p in APIs_and_Packages:
-        if match_skill(p, filetext):
+        if match_individual_skill(p, filetext):
             APIs_and_Packages_Lst.append(p)
             combined_skill_list.append(p)
             skills['APIs_and_Packages'] = APIs_and_Packages_Lst;
 
     for q in Other_Skills:
-        if match_skill(q, filetext):
+        if match_individual_skill(q, filetext):
             Other_Skills_Lst.append(q)
             combined_skill_list.append(q)
             skills['Other_Skills'] = Other_Skills_Lst;
@@ -550,11 +550,11 @@ def convert_pdf_to_txt(path):
     fp.close()
     device.close()
     retstr.close()
-    egineer_name = extractDeveloperName(path)
+    egineer_name = extract_developer_name(path)
     return egineer_name, text
 
 
-def extractDeveloperName(filename):
+def extract_developer_name(filename):
     # src = pathlib.Path(filename).resolve()
 
     fname_w_extn = ntpath.basename(filename)
@@ -565,8 +565,9 @@ def extractDeveloperName(filename):
     # print(fname)
     return fname
 
-def extractTextFromPDF(filename, call_textract=0):
-    egineer_name = extractDeveloperName(filename)
+
+def extract_text_from_pdf(filename, call_textract=0):
+    egineer_name = extract_developer_name(filename)
     text = ""
 
     try:
@@ -623,92 +624,6 @@ def extractTextFromPDF(filename, call_textract=0):
     return egineer_name, text
 
 
-# def writeCSV(engineer, skill_list_category_values):
-
-def main(directory):
-    # print directory
-    # print os.listdir('.')
-    # print(os.listdir(directory))
-
-    # print(filename)
-    print("Current working direcotry", "=>", os.getcwd())
-    conversion_candidates = dict()
-    # paths, fname = os.path.split(filename)
-
-    # print("ntpath basename", "=>", ntpath.basename(filename))
-    # print("ospath asename", "=>", os.path.basename(filename))
-
-    count = 0
-    other_filetype_counter = 0
-    with open(new_skill_list_filename, 'w') as csv_data_file:
-        writer = csv.writer(csv_data_file)
-
-        writer.writerow(["ENGINEER", "Skills"])
-
-        for filename in os.listdir(directory):
-            if count == 0:
-                os.chdir(directory)
-
-            if filename.lower().endswith(".pdf"):
-
-                count = count + 1
-
-                print("processing file", "=>", filename)
-
-                filename = "" + filename + ""
-                skills_retrieved = []
-
-                try:
-                    engineer, text = convert_pdf_to_txt(filename)
-
-                    skills_retrieved = match_skill_category(text)
-
-                    if len(skills_retrieved) == 0:
-                        print("No Skills Found.Trying PYPDF for", filename)
-                        engineer, text = extractTextFromPDF(filename)
-                        skills_retrieved = match_skill_category(text)
-
-                    if len(skills_retrieved) == 0:
-                        print("No Skills Found.Trying Textract Explicitly for ", filename)
-                        engineer, text = extractTextFromPDF(filename, 1)
-                        skills_retrieved = match_skill_category(text)
-
-                    print(engineer)
-                    # text = codecs.decode(text, encoding='utf-8', errors='strict')
-                    # print text
-
-
-                except TypeError as e:
-                    print(e, "While processing file:- ", filename)
-                except Exception as oth:
-                    print(oth, "While processing file:- ", filename)
-
-
-            else:
-                print("File name with other extension", filename)
-                other_filetype_counter = other_filetype_counter + 1
-                continue
-            if len(skills_retrieved) == 0:
-                conversion_candidates[extractDeveloperName(filename)] = filename
-                #conversion_candidates.append(filename)
-
-            writer.writerow([engineer, skills_retrieved])
-            fs = FreelancerSkill(engineer, skills_retrieved, 30., ADVANCED)
-            print(fs)
-
-    if len(conversion_candidates) > 0:
-        print("List of files to be converted", conversion_candidates)
-        tmp_path = os.path.join(os.getcwd(), "converted_resumes")
-        for devname, fname in conversion_candidates.items():
-            pil_images = pdf_2_pil_images(fname, tmp_path)
-            concat_and_save_images(pil_images, devname)
-
-
-    print("Resumes processed:-", count)
-    print("Other Format Files:-", other_filetype_counter)
-
-
-
 def pdf_2_pil_images(pdf_file_path, op_folder):
     # This method reads a pdf and converts it into a sequence of images
     # PDF_PATH sets the path to the PDF file
@@ -730,7 +645,6 @@ def pdf_2_pil_images(pdf_file_path, op_folder):
     return pil_images
 
 
-
 def concat_and_save_images(pil_images, devname):
     # This method helps in converting the images in PIL Image file format to the required image format
     index = 1
@@ -748,7 +662,141 @@ def concat_and_save_images(pil_images, devname):
         Y_coordinate += img.height
         index += 1
 
-    dst.save(devname + "_page_" + str(index) + ".jpg")
+    new_filename = devname + "_page_" + str(index) + ".jpg"
+    dst.save(new_filename)
+    return new_filename
+
+def extract_text_from_json(filename):
+    encoding = 'utf-8'
+    errors = 'strict'
+    try:
+        if filename.endswith(".json"):
+
+            print(filename, "=========================================================================")
+
+            with open(filename) as f:
+                data = json.load(f)
+
+                for majorkey, subdict in data.items():
+
+                    print(majorkey)
+                    json_tree = objectpath.Tree(data[majorkey])
+
+                    # print('json_tree', json_tree)
+                    result_tuple = tuple(json_tree.execute('$..text'))
+
+                    for var in result_tuple:
+                        if result_tuple.index(var) == 0:
+                            print(result_tuple.index(var), var)
+                            return var
+
+    except json.decoder.JSONDecodeError as j:
+        print(j, "File encountered error ", filename)
+
+    return ""
+
+
+def main(directory):
+    # print directory
+    # print os.listdir('.')
+    # print(os.listdir(directory))
+
+    # print(filename)
+    # os.chdir(sys.argv[1])
+    print("Current working directory in main()", "=>", os.getcwd())
+
+    # os.chdir(sys.argv[1])
+
+    print("Current working directory after os.getcwd()", "=>", os.getcwd())
+
+    conversion_candidates = dict()
+    # paths, fname = os.path.split(filename)
+
+    # print("ntpath basename", "=>", ntpath.basename(filename))
+    # print("ospath asename", "=>", os.path.basename(filename))
+
+    count = 0
+    other_filetype_counter = 0
+    with open(new_skill_list_filename, 'w') as csv_data_file:
+        writer = csv.writer(csv_data_file)
+
+        writer.writerow(["ENGINEER", "Skills"])
+
+        for filename in os.listdir(directory):
+            # if count == 0:
+            #   os.chdir(directory)
+
+            if filename.lower().endswith(".pdf"):
+
+                count = count + 1
+
+                print("processing file", "=>", filename)
+
+                filename = "" + filename + ""
+                skills_retrieved = []
+
+                try:
+                    engineer, text = convert_pdf_to_txt(filename)
+
+                    skills_retrieved = match_skill_category(text)
+
+                    if len(skills_retrieved) == 0:
+                        print("No Skills Found.Trying PYPDF for", filename)
+                        engineer, text = extract_text_from_pdf(filename)
+                        skills_retrieved = match_skill_category(text)
+
+                    if len(skills_retrieved) == 0:
+                        print("No Skills Found.Trying Textract Explicitly for ", filename)
+                        engineer, text = extract_text_from_pdf(filename, 1)
+                        skills_retrieved = match_skill_category(text)
+
+                    print(engineer)
+                    # text = codecs.decode(text, encoding='utf-8', errors='strict')
+                    # print text
+
+
+                except TypeError as e:
+                    print(e, "While processing file:- ", filename)
+                except Exception as oth:
+                    print(oth, "While processing file:- ", filename)
+
+                if len(skills_retrieved) == 0:
+                    conversion_candidates[extract_developer_name(filename)] = filename
+                    # conversion_candidates.append(filename)
+
+            elif filename.lower().endswith('.json'):
+                print("JSON file.")
+                engineer = extract_developer_name(filename)
+                text = extract_text_from_json(filename)
+                skills_retrieved = match_skill_category(text)
+            else:
+                print("File name with other extension", filename)
+                other_filetype_counter = other_filetype_counter + 1
+                continue
+
+            writer.writerow([engineer, skills_retrieved])
+            fs = FreelancerSkill(engineer, skills_retrieved, 30., ADVANCED)
+            print(fs)
+
+    if len(conversion_candidates) > 0:
+        print("List of files to be converted", conversion_candidates)
+        tmp_path = os.path.join(os.getcwd(), "converted_resumes")
+        try:
+            os.mkdir("converted_resumes")
+        except FileExistsError:
+            print("converted_resumes directory already exists!")
+
+        for devname, fname in conversion_candidates.items():
+            pil_images = pdf_2_pil_images(fname, tmp_path)
+            concat_and_save_images(pil_images, devname)
+        im2text.process_directory(os.getcwd())
+        main(os.getcwd())
+    print("Resumes processed:-", count)
+    print("Other Format Files:-", other_filetype_counter)
+
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    TARGET_DIRECTORY = sys.argv[1]
+    os.chdir(TARGET_DIRECTORY)
+    TARGET_DIRECTORY = os.getcwd()  # Setting  target directory value to new current working directory
+    main(TARGET_DIRECTORY)
