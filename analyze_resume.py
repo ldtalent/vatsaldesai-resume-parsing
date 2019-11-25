@@ -39,6 +39,7 @@ fmt = "%Y_%m_%d_%I_%M_%S_%p"
 now = datetime.now()
 new_skill_list_filename = 'engineerlist_' + now.strftime(fmt) + '.csv'
 
+
 Software_Engineering = [
     "C\+\+",
     "J2EE",
@@ -666,6 +667,7 @@ def concat_and_save_images(pil_images, devname):
     dst.save(new_filename)
     return new_filename
 
+
 def extract_text_from_json(filename):
     encoding = 'utf-8'
     errors = 'strict'
@@ -696,10 +698,11 @@ def extract_text_from_json(filename):
     return ""
 
 
-def main(directory):
+def main(directory, filetype='pdf'):
     # print directory
     # print os.listdir('.')
     # print(os.listdir(directory))
+
 
     # print(filename)
     # os.chdir(sys.argv[1])
@@ -717,7 +720,7 @@ def main(directory):
 
     count = 0
     other_filetype_counter = 0
-    with open(new_skill_list_filename, 'w') as csv_data_file:
+    with open(new_skill_list_filename, 'a', encoding = 'utf-8') as csv_data_file:
         writer = csv.writer(csv_data_file)
 
         writer.writerow(["ENGINEER", "Skills"])
@@ -726,7 +729,7 @@ def main(directory):
             # if count == 0:
             #   os.chdir(directory)
 
-            if filename.lower().endswith(".pdf"):
+            if filename.lower().endswith(".pdf") and filetype == 'pdf':
 
                 count = count + 1
 
@@ -790,7 +793,7 @@ def main(directory):
             pil_images = pdf_2_pil_images(fname, tmp_path)
             concat_and_save_images(pil_images, devname)
         im2text.process_directory(os.getcwd())
-        main(os.getcwd())
+        main(os.getcwd(), 'json')
     print("Resumes processed:-", count)
     print("Other Format Files:-", other_filetype_counter)
 
@@ -799,4 +802,5 @@ if __name__ == '__main__':
     TARGET_DIRECTORY = sys.argv[1]
     os.chdir(TARGET_DIRECTORY)
     TARGET_DIRECTORY = os.getcwd()  # Setting  target directory value to new current working directory
+
     main(TARGET_DIRECTORY)
