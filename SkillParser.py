@@ -358,7 +358,9 @@ Other_Skills = [
 
 def match_individual_skill(skill_to_match, filetext):
 
+
     skill_to_check = r"(" + skill_to_match + ")"
+    print("skill_to_check", skill_to_match, "-->", len(skill_to_match))
 
     regex = skill_to_check
 
@@ -372,7 +374,11 @@ def match_individual_skill(skill_to_match, filetext):
                 "Skills used: JavaScript,Java,JSP,Servlet,Dojo,jQuery,EMC Documentum,TIBCO\n"
                 "EAI,EMS\n\n"
                 "Skills used: Java, JSP, Servlet, SQL, HTML, CSS, JavaScript")
-    if (len(skill_to_match) <= 5):
+
+
+
+
+    if len(skill_to_match) <= 5:
         regex = r"[\s\,]" + skill_to_match + "[\s\,]"
         #regex = r"\b" + skill_to_match + "\b"
 
@@ -381,7 +387,10 @@ def match_individual_skill(skill_to_match, filetext):
     # if (len(skill_to_match)>1 and  len(skill_to_match)<= 3) :
     # matches = re.finditer(regex, filetext, re.MULTILINE)
     # else :
-    matches = re.finditer(regex, filetext, re.MULTILINE | re.IGNORECASE)
+    if skill_to_match == 'C' or skill_to_match == 'R':
+        matches = re.finditer(regex, filetext, re.MULTILINE)
+    else:
+        matches = re.finditer(regex, filetext, re.MULTILINE | re.IGNORECASE)
     #print(len(matches))
     count = 0
 
