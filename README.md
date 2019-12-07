@@ -17,7 +17,7 @@ pip3 install -r requirements.txt
 The script accepts three parameters (-D is required parameter)
 
 -D   -  the directory where all resumes are placed  
--O   -  True if you want to use Google Vision API for resumes which can not be parsed by script pdf libraries.This option also needs google vision api key and you need to execute the command mentioned prior to using this switch
+-O   -  True -if you want to use Google Vision API for resumes which can not be parsed by script pdf libraries.This option also needs google vision api key and you need to execute the command mentioned prior to using this switch
 
 Following command needs to be executed before each script run(only if OCR option is enabled/passed in the parameter):-
 
@@ -31,6 +31,8 @@ export GOOGLE_APPLICATION_CREDENTIALS="<path to google vision api credentials - 
 https://docs.google.com/document/d/1u0o4JTg9nlmbHv6SPiaL_pvDN2a7MwsIqCmQHuGXcVA
 https://docs.google.com/document/d/<file id>
 ```
+
+Following command needs to be issued to run the script with all parameters.
 
 ```python
 python3 analyze_resume.py -D <directory> -O <True>  -G <google-resumes.txt>
