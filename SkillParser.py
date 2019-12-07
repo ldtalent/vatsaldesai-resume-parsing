@@ -357,12 +357,11 @@ Other_Skills = [
 
 
 def match_individual_skill(skill_to_match, filetext):
-    # skill_to_check =
+
     skill_to_check = r"(" + skill_to_match + ")"
-    # print skill_to_check
+
     regex = skill_to_check
-    # regex = r"(Core Java)"
-    # skills =
+
 
     test_str = ("Skill Tags: Keras,TensorFlow, Numpy,Javascript, Python, Nodejs, socket.io, websockets,\n"
                 "Core Java,JSP/Servlet, Google Dialogflow, Android(native-android studio),\n"
@@ -400,7 +399,9 @@ def match_individual_skill(skill_to_match, filetext):
                                                                            end=match.end(groupNum),
                                                                            group=match.group(groupNum)))
     print("count", count)
-
+    if count > 0:
+        return True
+    return False
 
 def match_skill_category(filetext):
     skills = dict()
@@ -452,5 +453,5 @@ def match_skill_category(filetext):
             skills['Other_Skills'] = Other_Skills_Lst;
 
     # print("skills ", skills)
-
+    print("combined_skill_list", combined_skill_list)
     return combined_skill_list

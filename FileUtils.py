@@ -9,6 +9,7 @@ from os import path
 import PyPDF2
 import objectpath
 import pdf2image
+import requests
 import textract
 from PIL import Image
 from PyPDF2.utils import PdfReadWarning
@@ -40,8 +41,8 @@ def convert_pdf_to_txt(path):
     fp.close()
     device.close()
     retstr.close()
-    egineer_name = extract_developer_name(path)
-    return egineer_name, text
+    engineer_name = extract_developer_name(path)
+    return engineer_name, text
 
 
 def extract_text_from_pdf(filename, call_textract=0):
@@ -197,3 +198,54 @@ def extract_developer_name(filename):
     # print(fextension)
     # print(fname)
     return fname
+
+
+def download_gdoc_in_pdf(fileId, file_name, location = '', chunk_size=2000):
+    if location == '':
+        filename_with_location = os.getcwd() + "/" +  file_name
+    else:
+        filename_with_location = os.getcwd() + "/" + location + "/" + file_name
+
+    url = f"https://www.googleapis.com/drive/v3/files/{fileId}/export"
+    params = {
+        "mimeType": 'application/pdf',
+        "key": 'AIzaSyD68hvsrIZblcyyFtCS77KQv8eDMCj40io'
+    }
+    res = requests.get(url, params, stream=True)
+    print(type(res))
+    print(filename_with_location)
+
+    with open(filename_with_location, 'wb') as fd:
+        for chunk in res.iter_content(chunk_size):
+            fd.write(chunk)
+
+def get_gdoc_metadata(fileId):
+    url = f"https://www.googleapis.com/drive/v3/files/{fileId}"
+    params = {
+        "key": 'AIzaSyD68hvsrIZblcyyFtCS77KQv8eDMCj40io'
+    }
+    res = requests.get(url, params)
+    print(type(res))
+    print(res.json())
+    #print('content', res.content)
+    #print('text', res.text)
+    file_metatdata = res.json()
+    print(file_metatdata['name'])
+    return file_metatdata
+
+def get_file_name(fileId):
+    f_metadata = get_gdoc_metadata(fileId)
+    if f_metadata['mimeType'] == 'application/vnd.google-apps.document':
+        file_name = f_metadata['name']
+        return file_name.replace(' ', '_') + '.pdf'
+
+def download_gdrive_files(file_name):
+
+    with open(file_name, 'r') as file_names:
+        for record in file_names:
+            path_list = record.split('/')
+            print(path_list[-1])
+            file_name_retrived = get_file_name(path_list[-1].rstrip('\n'))
+            if file_name_retrived != '':
+                download_gdoc_in_pdf(path_list[-1], file_name_retrived)
+

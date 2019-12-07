@@ -3,13 +3,14 @@ import json
 import os
 import sys
 from datetime import datetime
+import requests
 
 import argparse
 
 import imagetotext as im2text
 
 from FileUtils import convert_pdf_to_txt, extract_text_from_pdf, pdf_2_pil_images, concat_and_save_images, \
-    extract_text_from_json, TARGET_DIRECTORY, extract_developer_name
+    extract_text_from_json, TARGET_DIRECTORY, extract_developer_name, download_gdrive_files
 from SkillParser import match_skill_category
 
 # construct the argument parser and parse the arguments
@@ -18,6 +19,10 @@ ap.add_argument("-D", "--directory", required=True,
                 help="Directory/folder having resumes")
 ap.add_argument("-O", "--ocr", required=False, default=False,
                 help="Want to use Google Vision API?")
+ap.add_argument("-G", "--google", required=False, default=False,
+                help="google-resume-file-text file name")
+
+
 args = vars(ap.parse_args())
 
 fmt = "%Y_%m_%d_%I_%M_%S_%p"
@@ -62,6 +67,7 @@ def main(directory, filetype='pdf', ocr=False):
     # print(filename)
     # os.chdir(sys.argv[1])
     print("Current working directory in main()", "=>", os.getcwd())
+    engineer = ''
 
     # os.chdir(sys.argv[1])
 
@@ -154,9 +160,14 @@ def main(directory, filetype='pdf', ocr=False):
 
 
 if __name__ == '__main__':
+
     TARGET_DIRECTORY = args["directory"]
     os.chdir(TARGET_DIRECTORY)
     TARGET_DIRECTORY = os.getcwd()  # Setting  target directory value to new current working directory
+
+    if args["google"]:
+        download_gdrive_files(args["google"])
+
     if args["ocr"]:
         main(TARGET_DIRECTORY, True)
     else:
