@@ -209,7 +209,7 @@ def download_gdoc_in_pdf(fileId, file_name, location = '', chunk_size=2000):
     url = f"https://www.googleapis.com/drive/v3/files/{fileId}/export"
     params = {
         "mimeType": 'application/pdf',
-        "key": 'AIzaSyD68hvsrIZblcyyFtCS77KQv8eDMCj40io'
+        "key": '' #enter your key here
     }
     res = requests.get(url, params, stream=True)
     print(type(res))
@@ -222,7 +222,7 @@ def download_gdoc_in_pdf(fileId, file_name, location = '', chunk_size=2000):
 def get_gdoc_metadata(fileId):
     url = f"https://www.googleapis.com/drive/v3/files/{fileId}"
     params = {
-        "key": 'AIzaSyD68hvsrIZblcyyFtCS77KQv8eDMCj40io'
+        "key": '' #enter your key here
     }
     res = requests.get(url, params)
     print(type(res))
